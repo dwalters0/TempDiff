@@ -1,28 +1,27 @@
-#web server stuff
+# web server stuff
 import network
 import time
 import socket
-#bme680 stuff
+import json
+# bme680 stuff
 from bme680 import BME680
 from machine import I2C, Pin
 
 # Wi-Fi credentials
-ssid = '<ADD WIFI NAME>'
-password = '<ADD WIFI PASSWORD>'
+ssid = '<ADD wifi>'
+password = '<Add wifi>'
+
 
 def return_680_data():
     mypinout = I2C(0, scl=Pin(21), sda=Pin(20))
-    sensor = BME680(mypinout,10)
-    ret = f"""
-<pre>
-Temperature: {sensor.readTemperature():.2f}&deg;C
-Air pressure: {sensor.readPressure():.2f}hPa
-Relative Humidity: {sensor.readHumidity():.2f}%
-Air resistance: {sensor.readGas():.2f}M&Omega;
-</pre>
-"""
-    return ret
-
+    sensor = BME680(mypinout, 10)
+    data = {
+        "temperature": round(sensor.readTemperature(), 2),
+        "pressure": round(sensor.readPressure(), 2),
+        "humidity": round(sensor.readHumidity(), 2),
+        "air_resistance": round(sensor.readGas(), 2)
+    }
+    return json.dumps(data)
 
 
 # Connect to network
@@ -31,13 +30,13 @@ def connect_wifi(ssid, password):
     station = network.WLAN(network.STA_IF)
     station.active(True)
     station.connect(ssid, password)
-    
+
     # Wait for connection
     timeout = 10
     while not station.isconnected() and timeout > 0:
         time.sleep(1)
         timeout -= 1
-    
+
     if station.isconnected():
         print('Connection successful')
         print(station.ifconfig())
@@ -45,6 +44,7 @@ def connect_wifi(ssid, password):
     else:
         print('Connection failed. Timeout reached')
         return False
+
 
 def run_server():
     addr = socket.getaddrinfo("0.0.0.0", 80)[0][-1]
@@ -69,11 +69,11 @@ def run_server():
             body = return_680_data()
 
             response = (
-                "HTTP/1.1 200 OK\r\n"
-                "Content-Type: text/html\r\n"
-                "Connection: close\r\n"
-                "\r\n"
-                + body
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: application/json\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"
+                    + body
             )
 
             client.send(response.encode())
@@ -83,7 +83,7 @@ def run_server():
 
         finally:
             client.close()
-    
-    
-connect_wifi(ssid,password)
+
+
+connect_wifi(ssid, password)
 run_server()
