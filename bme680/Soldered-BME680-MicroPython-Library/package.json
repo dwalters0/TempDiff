@@ -1,0 +1,14 @@
+{
+    "urls": [
+        [
+            "bme680.py",
+            "github:SolderedElectronics/Soldered-BME680-MicroPython-Library/bme680.py"
+        ],
+        [
+            "Examples/bme680-allValues.py",
+            "github:SolderedElectronics/Soldered-BME680-MicroPython-Library/Examples/bme680-allValues.py"
+        ]
+    ],
+    "deps": [],
+    "version": "0.2"
+}
